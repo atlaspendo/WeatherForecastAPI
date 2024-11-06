@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<APIProxy revision="1" name="WeatherForecastAPI">
+  <DisplayName/>
+  <Description/>
+  <CreatedAt>1727058589084</CreatedAt>
+  <LastModifiedAt>1727058589084</LastModifiedAt>
+  <BasePaths>/weatherforecastapi</BasePaths>
+  <ProxyEndpoints>
+    <ProxyEndpoint>default</ProxyEndpoint>
+  </ProxyEndpoints>
+  <TargetEndpoints>
+    <TargetEndpoint>default</TargetEndpoint>
+  </TargetEndpoints>
+</APIProxy>
