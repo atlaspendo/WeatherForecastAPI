@@ -1,5 +1,4 @@
 name: Apigee Proxy Deployment
-
 on:
   push:
     branches: [main]
@@ -46,13 +45,9 @@ jobs:
   Deploy:
     uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
-      proxy_name: ${{ github.event.inputs.proxy_name }}
+      proxy_name: ${{ github.event.inputs.proxy_name || github.event.repository.name }}
       environment_group: ${{ github.event.inputs.environment_group }}
       environment_type: ${{ github.event.inputs.environment_type }}
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
       runner: 'ubuntu-latest'
-    secrets:
-      apigee_org: ${{ secrets.APIGEE_ORG }}
-      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-      service_account: ${{ secrets.SERVICE_ACCOUNT }}
-      api_key: ${{ secrets.API_KEY }}
+    secrets: inherit
