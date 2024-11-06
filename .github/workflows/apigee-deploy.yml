@@ -1,52 +1,58 @@
-
 name: Apigee Proxy Deployment
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'src/**'
       - 'apiproxy/**'
   workflow_dispatch:
+    inputs:
+      proxy_name:
+        description: "The name of the API proxy to deploy"
+        required: true
+        default: "DefaultProxyName"
+      environment_group:
+        description: "Select environment group"
+        required: true
+        type: choice
+        options:
+          - "default"
+          - "edd"
+          - "homerun"
+          - "wow"
+          - "wpay"
+      environment_type:
+        description: "Select environment type(s)"
+        required: true
+        type: choice
+        options:
+          - "dev"
+          - "test"
+          - "uat"
+          - "dev,test"
+          - "test,uat"
+          - "dev,test,uat"
+      proxy_directory:
+        description: "Directory containing the API proxy files"
+        required: false
+        default: "apiproxy"
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  setup_and_auth:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          token_format: 'access_token'
-          workload_identity_provider: '${{ secrets.WORKLOAD_IDENTITY_POOL_ID }}'
-          service_account: '${{ secrets.SERVICE_ACCOUNT }}'
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Use gcloud CLI
-        run: gcloud info
-
-  deploy_proxy:
-    needs: setup_and_auth
-    uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
+  Deploy:
+    uses: woolworthslimited/apigeex-proxy-ci-cd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
-      proxy_name: 'WeatherForecastAPI'
-      dev_env: 'dev'
-      test_env: 'test'
-      uat_env: 'uat'
-      repository: ${{ github.repository }}
+      proxy_name: ${{ github.event.inputs.proxy_name }}
+      environment_group: ${{ github.event.inputs.environment_group }}
+      environment_type: ${{ github.event.inputs.environment_type }}
+      proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
+      runner: 'ubuntu-latest'
     secrets:
       apigee_org: ${{ secrets.APIGEE_ORG }}
-      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_POOL_ID }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account: ${{ secrets.SERVICE_ACCOUNT }}
+      api_key: ${{ secrets.API_KEY }}
