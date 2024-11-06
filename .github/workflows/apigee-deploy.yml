@@ -45,10 +45,14 @@ jobs:
   verify_auth:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
       - name: Debug Identity Information
         run: |
           echo "Repository: ${{ github.repository }}"
           echo "Organization: ${{ github.repository_owner }}"
+          echo "Ref: ${{ github.ref }}"
           
       - name: Authenticate to Google Cloud
         id: auth
@@ -56,8 +60,16 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
-          create_credentials_file: true
+          create_credentials_file: false
           token_format: 'access_token'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Verify Authentication
+        run: |
+          gcloud auth list
+          gcloud config list project
 
   deploy:
     needs: verify_auth
