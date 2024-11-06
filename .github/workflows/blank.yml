@@ -1,0 +1,52 @@
+
+name: Apigee Proxy Deployment
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'apiproxy/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  setup_and_auth:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.WORKLOAD_IDENTITY_POOL_ID }}'
+          service_account: '${{ secrets.SERVICE_ACCOUNT }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Use gcloud CLI
+        run: gcloud info
+
+  deploy_proxy:
+    needs: setup_and_auth
+    uses: apatilgtn/apigeex-proxy-ci-cd-main/.github/workflows/Reusable-proxy-deploy.yml@main
+    with:
+      proxy_name: 'WeatherForecastAPI'
+      dev_env: 'dev'
+      test_env: 'test'
+      uat_env: 'uat'
+      repository: ${{ github.repository }}
+    secrets:
+      apigee_org: ${{ secrets.APIGEE_ORG }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_POOL_ID }}
+      service_account: ${{ secrets.SERVICE_ACCOUNT }}
