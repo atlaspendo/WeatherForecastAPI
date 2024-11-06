@@ -50,4 +50,8 @@ jobs:
       environment_type: ${{ github.event.inputs.environment_type }}
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
       runner: 'ubuntu-latest'
-    secrets: inherit
+    secrets:
+      apigee_org: ${{ secrets.APIGEE_ORG }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      service_account: ${{ secrets.SERVICE_ACCOUNT }}
+      api_key: ${{ secrets.API_KEY }}
