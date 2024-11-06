@@ -42,37 +42,33 @@ permissions:
   contents: read
 
 jobs:
-  verify_auth:
+  verify_auth_WIF:
     runs-on: ubuntu-latest
+    outputs:
+      access_token: ${{ steps.auth.outputs.access_token }}
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Debug Identity Information
-        run: |
-          echo "Repository: ${{ github.repository }}"
-          echo "Organization: ${{ github.repository_owner }}"
-          echo "Ref: ${{ github.ref }}"
-          
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
-          create_credentials_file: false
           token_format: 'access_token'
+          create_credentials_file: true
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
-
+        
       - name: Verify Authentication
         run: |
-          gcloud auth list
-          gcloud config list project
+          echo "::add-mask::$(gcloud auth print-access-token)"
+          echo "access_token=$(gcloud auth print-access-token)" >> $GITHUB_OUTPUT
 
   deploy:
-    needs: verify_auth
+    needs: verify_auth_WIF
     uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: ${{ github.event.inputs.proxy_name || github.event.repository.name }}
