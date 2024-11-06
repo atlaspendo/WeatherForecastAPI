@@ -39,7 +39,7 @@ jobs:
 
   deploy_proxy:
     needs: setup_and_auth
-    uses: atlaspendo/WeatherForecastAPI/.github/workflows/Reusable-proxy-deploy.yml@main
+    uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: 'WeatherForecastAPI'
       dev_env: 'dev'
