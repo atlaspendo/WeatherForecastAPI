@@ -54,4 +54,3 @@ jobs:
       apigee_org: ${{ secrets.APIGEE_ORG }}
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account: ${{ secrets.SERVICE_ACCOUNT }}
-      api_key: ${{ secrets.API_KEY }}
