@@ -44,7 +44,7 @@ permissions:
 
 jobs:
   Deploy:
-    uses: woolworthslimited/apigeex-proxy-ci-cd/.github/workflows/Reusable-proxy-deploy.yml@main
+    uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: ${{ github.event.inputs.proxy_name }}
       environment_group: ${{ github.event.inputs.environment_group }}
