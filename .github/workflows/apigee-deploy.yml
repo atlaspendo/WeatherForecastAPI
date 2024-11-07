@@ -27,7 +27,6 @@ on:
         type: choice
         options:
           - "dev"
-          - "test-env"
           - "test"
           - "uat"
           - "dev,test"
@@ -43,16 +42,13 @@ permissions:
   contents: read
 
 jobs:
-  verify_auth_WIF:
+  auth:
     runs-on: ubuntu-latest
     outputs:
-      access_token: ${{ steps.auth.outputs.access_token }}
+      access_token: ${{ steps.auth-step.outputs.access_token }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
       - name: Authenticate to Google Cloud
-        id: auth
+        id: auth-step
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
@@ -60,22 +56,21 @@ jobs:
           token_format: 'access_token'
           create_credentials_file: true
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        
-      - name: Verify Authentication
+      - name: Get Access Token
         run: |
-          echo "::add-mask::$(gcloud auth print-access-token)"
-          echo "access_token=$(gcloud auth print-access-token)" >> $GITHUB_OUTPUT
+          TOKEN=$(gcloud auth print-access-token)
+          echo "::add-mask::$TOKEN"
+          echo "access_token=$TOKEN" >> $GITHUB_OUTPUT
 
   deploy:
-    needs: verify_auth_WIF
+    needs: auth
     uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: ${{ github.event.inputs.proxy_name || github.event.repository.name }}
       environment_group: ${{ github.event.inputs.environment_group }}
       environment_type: ${{ github.event.inputs.environment_type }}
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
+      access_token: ${{ needs.auth.outputs.access_token }}
       runner: 'ubuntu-latest'
     secrets:
       apigee_org: ${{ secrets.APIGEE_ORG }}
