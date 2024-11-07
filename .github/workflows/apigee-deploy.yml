@@ -38,39 +38,17 @@ on:
         default: "apiproxy"
 
 permissions:
-  id-token: write
   contents: read
+  id-token: write
 
 jobs:
-  auth:
-    runs-on: ubuntu-latest
-    outputs:
-      access_token: ${{ steps.auth-step.outputs.access_token }}
-    steps:
-      - name: Authenticate to Google Cloud
-        id: auth-step
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT }}
-          token_format: 'access_token'
-          create_credentials_file: true
-
-      - name: Get Access Token
-        run: |
-          TOKEN=$(gcloud auth print-access-token)
-          echo "::add-mask::$TOKEN"
-          echo "access_token=$TOKEN" >> $GITHUB_OUTPUT
-
   deploy:
-    needs: auth
     uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: ${{ github.event.inputs.proxy_name || github.event.repository.name }}
       environment_group: ${{ github.event.inputs.environment_group }}
       environment_type: ${{ github.event.inputs.environment_type }}
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
-      access_token: ${{ needs.auth.outputs.access_token }}
       runner: 'ubuntu-latest'
     secrets:
       apigee_org: ${{ secrets.APIGEE_ORG }}
