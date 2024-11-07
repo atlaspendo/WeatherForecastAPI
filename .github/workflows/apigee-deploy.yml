@@ -27,6 +27,7 @@ on:
         type: choice
         options:
           - "dev"
+          - "test-env"
           - "test"
           - "uat"
           - "dev,test"
