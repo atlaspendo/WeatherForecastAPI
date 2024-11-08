@@ -96,9 +96,9 @@ jobs:
       non_prod_revision: ""
       runner: 'ubuntu-latest'
     secrets:
-      apigee_org: ${{ secrets.APIGEE_ORG }}
-      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-      service_account: ${{ secrets.SERVICE_ACCOUNT }}
+      APIGEE_ORG: ${{ secrets.APIGEE_ORG }}
+      WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
 
   request_prod_approval:
     needs: [check_deployment_type, deploy_non_prod]
@@ -160,9 +160,9 @@ jobs:
       non_prod_revision: ${{ github.event.inputs.non_prod_revision }}
       runner: 'ubuntu-latest'
     secrets:
-      apigee_org: ${{ secrets.APIGEE_ORG_PROD }}
-      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_PROD }}
-      service_account: ${{ secrets.SERVICE_ACCOUNT_PROD }}
+      APIGEE_ORG: ${{ secrets.APIGEE_ORG_PROD }}
+      WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_PROD }}
+      SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT_PROD }}
 
   notify_deployment_status:
     needs: [deploy_non_prod, deploy_prod]
