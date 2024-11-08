@@ -11,7 +11,7 @@ on:
       proxy_name:
         description: "The name of the API proxy to deploy"
         required: true
-        default: ""
+        default: "DefaultProxyName"
       environment_group:
         description: "Select environment group"
         required: true
@@ -92,9 +92,9 @@ jobs:
       environment_group: ${{ github.event.inputs.environment_group }}
       environment_type: ${{ github.event.inputs.environment_type }}
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
-      runner: 'ubuntu-latest'
       is_production: false
       non_prod_revision: ""
+      runner: 'ubuntu-latest'
     secrets:
       apigee_org: ${{ secrets.APIGEE_ORG }}
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
