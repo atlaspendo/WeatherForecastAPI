@@ -105,7 +105,8 @@ jobs:
     if: |
       needs.check_deployment_type.outputs.deploy_type == 'non-prod' && 
       needs.check_deployment_type.outputs.can_proceed == 'true'
-    uses: ./.github/workflows/Reusable-proxy-deploy.yml
+    # Fix: Use the full repository path instead of relative path
+    uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.proxy_name || github.event.repository.name }}
       environment_group: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment_group || 'default' }}
@@ -179,7 +180,8 @@ jobs:
     if: |
       needs.check_deployment_type.outputs.deploy_type == 'prod' && 
       needs.check_deployment_type.outputs.can_proceed == 'true'
-    uses: ./.github/workflows/Reusable-proxy-deploy.yml
+    # Fix: Use the full repository path instead of relative path
+    uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: ${{ github.event.inputs.proxy_name }}
       environment_group: "prod"
