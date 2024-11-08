@@ -10,7 +10,7 @@ on:
       proxy_name:
         description: "The name of the API proxy to deploy"
         required: true
-        default: "DefaultProxyName"
+        default: ""
       environment_group:
         description: "Select environment group"
         required: true
@@ -21,6 +21,7 @@ on:
           - "homerun"
           - "wow"
           - "wpay"
+          - "prod"  # Added production option
       environment_type:
         description: "Select environment type(s)"
         required: true
@@ -30,6 +31,7 @@ on:
           - "test-env"
           - "test"
           - "uat"
+          - "prod"  # Added production option
           - "dev,test"
           - "test,uat"
           - "dev,test,uat"
@@ -37,13 +39,51 @@ on:
         description: "Directory containing the API proxy files"
         required: false
         default: "apiproxy"
+      is_production:
+        description: "Is this a production deployment?"
+        type: boolean
+        required: false
+        default: false
+      non_prod_revision:
+        description: "Revision number from successful non-prod deployment (required for production)"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  deploy:
+  check_deployment_type:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_type: ${{ steps.check.outputs.environment }}
+      can_proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - name: Determine Deployment Type
+        id: check
+        run: |
+          if [[ "${{ github.event.inputs.environment_group }}" == "prod" || "${{ github.event.inputs.environment_type }}" == "prod" ]]; then
+            if [[ "${{ github.event.inputs.is_production }}" != "true" ]]; then
+              echo "❌ Error: Production environment selected but is_production flag is not set"
+              echo "proceed=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            if [[ -z "${{ github.event.inputs.non_prod_revision }}" ]]; then
+              echo "❌ Error: Production deployment requires non_prod_revision"
+              echo "proceed=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=non-prod" >> $GITHUB_OUTPUT
+          fi
+          echo "proceed=true" >> $GITHUB_OUTPUT
+
+  deploy_non_prod:
+    needs: check_deployment_type
+    if: needs.check_deployment_type.outputs.deploy_type == 'non-prod'
     uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
       proxy_name: ${{ github.event.inputs.proxy_name || github.event.repository.name }}
@@ -55,3 +95,94 @@ jobs:
       apigee_org: ${{ secrets.APIGEE_ORG }}
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+  request_prod_approval:
+    needs: [check_deployment_type, deploy_non_prod]
+    if: |
+      always() && 
+      needs.check_deployment_type.outputs.deploy_type == 'non-prod' && 
+      needs.deploy_non_prod.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Production Deployment Issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Production Deployment Ready - ${process.env.PROXY_NAME}`,
+              body: `
+              ## Production Deployment Request
+              
+              A successful non-production deployment has completed and is ready for production deployment.
+              
+              ### Deployment Details
+              - **Proxy Name:** ${process.env.PROXY_NAME}
+              - **Current Revision:** ${process.env.REVISION}
+              - **Non-Prod Environment:** ${process.env.ENV_GROUP}-${process.env.ENV_TYPE}
+              - **Run ID:** ${context.runId}
+              
+              ### To Deploy to Production
+              
+              1. Go to Actions → Apigee Proxy Deployment
+              2. Click "Run workflow"
+              3. Fill in the following:
+                 - Proxy Name: ${process.env.PROXY_NAME}
+                 - Environment Group: prod
+                 - Environment Type: prod
+                 - Is Production: true
+                 - Non-Prod Revision: ${process.env.REVISION}
+              
+              [Start Production Deployment](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/workflows/deploy.yml)
+              `
+            });
+        env:
+          PROXY_NAME: ${{ github.event.inputs.proxy_name || github.event.repository.name }}
+          REVISION: ${{ needs.deploy_non_prod.outputs.revision }}
+          ENV_GROUP: ${{ github.event.inputs.environment_group }}
+          ENV_TYPE: ${{ github.event.inputs.environment_type }}
+
+  deploy_prod:
+    needs: check_deployment_type
+    if: needs.check_deployment_type.outputs.deploy_type == 'prod'
+    environment: production
+    uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
+    with:
+      proxy_name: ${{ github.event.inputs.proxy_name }}
+      environment_group: "prod"
+      environment_type: "prod"
+      proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
+      is_production: true
+      non_prod_revision: ${{ github.event.inputs.non_prod_revision }}
+      runner: 'ubuntu-latest'
+    secrets:
+      apigee_org: ${{ secrets.APIGEE_ORG_PROD }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_PROD }}
+      service_account: ${{ secrets.SERVICE_ACCOUNT_PROD }}
+
+  notify_deployment_status:
+    needs: [deploy_non_prod, deploy_prod]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Status
+        run: |
+          if [[ "${{ github.event.inputs.is_production }}" == "true" ]]; then
+            DEPLOY_RESULT="${{ needs.deploy_prod.result }}"
+            ENV_TYPE="Production"
+          else
+            DEPLOY_RESULT="${{ needs.deploy_non_prod.result }}"
+            ENV_TYPE="Non-Production"
+          fi
+
+          echo "# 📊 Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Environment: ${ENV_TYPE}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** $([ "$DEPLOY_RESULT" == "success" ] && echo "✅ Success" || echo "❌ Failed")" >> $GITHUB_STEP_SUMMARY
+          echo "- **Proxy:** ${{ github.event.inputs.proxy_name || github.event.repository.name }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ github.event.inputs.is_production }}" == "true" ]]; then
+            echo "- **Production Org:** ${{ secrets.APIGEE_ORG_PROD }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Revision:** ${{ github.event.inputs.non_prod_revision }}" >> $GITHUB_STEP_SUMMARY
+          fi
