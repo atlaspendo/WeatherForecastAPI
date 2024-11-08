@@ -61,12 +61,12 @@ jobs:
   deploy:
     uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
-      proxy_name: ${{ github.event.inputs.proxy_name }}
-      environment_group: ${{ github.event.inputs.environment_group }}
-      environment_type: ${{ github.event.inputs.environment_type }}
-      proxy_directory: ${{ github.event.inputs.proxy_directory }}
-      is_production: ${{ github.event.inputs.is_production }}
-      non_prod_revision: ${{ github.event.inputs.non_prod_revision }}
+      proxy_name: ${{ inputs.proxy_name }}
+      environment_group: ${{ inputs.environment_group }}
+      environment_type: ${{ inputs.environment_type }}
+      proxy_directory: ${{ inputs.proxy_directory }}
+      is_production: ${{ inputs.is_production }}
+      non_prod_revision: ${{ inputs.non_prod_revision }}
       event_name: ${{ github.event_name }}
     secrets:
       APIGEE_ORG: ${{ secrets.APIGEE_ORG }}
