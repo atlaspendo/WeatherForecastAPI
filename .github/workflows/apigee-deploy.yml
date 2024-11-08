@@ -148,7 +148,7 @@ jobs:
           ENV_TYPE: ${{ github.event.inputs.environment_type }}
 
   deploy_prod:
-    needs: check_deployment_type
+    needs: [check_deployment_type]
     if: needs.check_deployment_type.outputs.deploy_type == 'prod'
     uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main
     with:
