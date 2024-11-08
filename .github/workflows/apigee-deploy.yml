@@ -1,4 +1,5 @@
 name: Apigee Proxy Deployment
+
 on:
   push:
     branches: [main]
@@ -55,6 +56,7 @@ permissions:
   id-token: write
 
 jobs:
+
   check_deployment_type:
     runs-on: ubuntu-latest
     outputs:
@@ -91,6 +93,8 @@ jobs:
       environment_type: ${{ github.event.inputs.environment_type }}
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
       runner: 'ubuntu-latest'
+      is_production: false
+      non_prod_revision: ""
     secrets:
       apigee_org: ${{ secrets.APIGEE_ORG }}
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
