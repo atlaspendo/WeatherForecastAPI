@@ -54,6 +54,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  issues: write
 
 jobs:
   check_deployment_type:
@@ -134,41 +135,52 @@ jobs:
       - name: Create Production Deployment Issue
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const proxyName = process.env.PROXY_NAME;
-            const revision = process.env.REVISION;
-            const envGroup = process.env.ENV_GROUP;
-            const envType = process.env.ENV_TYPE;
-            
-            const issue = await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Production Deployment Ready - ${proxyName}`,
-              body: `
-              ## Production Deployment Request
+            try {
+              const proxyName = process.env.PROXY_NAME;
+              const revision = process.env.REVISION;
+              const envGroup = process.env.ENV_GROUP;
+              const envType = process.env.ENV_TYPE;
               
-              A successful non-production deployment has completed and is ready for production deployment.
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Production Deployment Ready - ${proxyName}`,
+                body: `
+                ## Production Deployment Request
+                
+                A successful non-production deployment has completed and is ready for production deployment.
+                
+                ### Deployment Details
+                - **Proxy Name:** ${proxyName}
+                - **Current Revision:** ${revision}
+                - **Non-Prod Environment:** ${envGroup}-${envType}
+                - **Run ID:** ${context.runId}
+                
+                ### To Deploy to Production
+                
+                1. Go to Actions → Apigee Proxy Deployment
+                2. Click "Run workflow"
+                3. Fill in the following:
+                   - Proxy Name: ${proxyName}
+                   - Environment Group: prod
+                   - Environment Type: prod
+                   - Is Production: true
+                   - Non-Prod Revision: ${revision}
+                
+                [Start Production Deployment](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/workflows/apigee-deploy.yml)
+                `
+              });
               
-              ### Deployment Details
-              - **Proxy Name:** ${proxyName}
-              - **Current Revision:** ${revision}
-              - **Non-Prod Environment:** ${envGroup}-${envType}
-              - **Run ID:** ${context.runId}
-              
-              ### To Deploy to Production
-              
-              1. Go to Actions → Apigee Proxy Deployment
-              2. Click "Run workflow"
-              3. Fill in the following:
-                 - Proxy Name: ${proxyName}
-                 - Environment Group: prod
-                 - Environment Type: prod
-                 - Is Production: true
-                 - Non-Prod Revision: ${revision}
-              
-              [Start Production Deployment](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/workflows/deploy.yml)
-              `
-            });
+              console.log(`Created issue #${issue.data.number}`);
+            } catch (error) {
+              console.error('Failed to create issue:', error);
+              if (error.status === 403) {
+                console.error('Permission denied. Make sure the workflow has "issues: write" permission.');
+              }
+              throw error;
+            }
         env:
           PROXY_NAME: ${{ github.event.inputs.proxy_name || github.event.repository.name }}
           REVISION: ${{ needs.deploy_non_prod.outputs.revision }}
