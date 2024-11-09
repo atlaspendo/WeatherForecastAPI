@@ -52,9 +52,11 @@ on:
         default: ""
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
   issues: write
+  deployments: write
+  #environments: read
 
 jobs:
   deploy:
