@@ -42,6 +42,7 @@ permissions:
   contents: read
   id-token: write
   deployments: write
+  issues: write
 
 jobs:
   deploy:
