@@ -30,7 +30,7 @@ on:
           - "dev"
           - "test-env"
           - "test"
-          - "uat"
+          - "dev,test,uat"
           - "prod"
         default: "dev"
       proxy_directory:
