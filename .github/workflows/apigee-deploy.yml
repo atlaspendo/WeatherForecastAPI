@@ -37,6 +37,11 @@ on:
         description: "Directory containing the API proxy files"
         required: false
         default: "apiproxy"
+      version_id:  # Add this input
+        description: "Version ID for the deployment"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -55,6 +60,7 @@ jobs:
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
       is_production: ${{ github.event.inputs.environment_type == 'prod' }}
       event_name: ${{ github.event_name }}
+      version_id: ${{ github.event.inputs.version_id || format('v{0}', github.run_number) }}  # Add this line
     secrets:
       APIGEE_ORG: ${{ secrets.APIGEE_ORG }}
       APIGEE_ORG_PROD: ${{ secrets.APIGEE_ORG_PROD }}
