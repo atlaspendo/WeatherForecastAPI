@@ -30,29 +30,22 @@ on:
           - "dev"
           - "test-env"
           - "test"
-          - "dev,test,uat"
+          - "uat"
           - "prod"
         default: "dev"
       proxy_directory:
         description: "Directory containing the API proxy files"
         required: false
         default: "apiproxy"
-      non_prod_revision:  # Added this input as it's in the reusable workflow
-        description: "Revision number from successful non-prod deployment"
-        required: false
-        type: string
-        default: ""
 
 permissions:
   contents: read
   id-token: write
   deployments: write
-  issues: write
-  checks: write
 
 jobs:
   deploy:
-    uses: atlaspendo/apigeex-cicd/.github/workflows/reusable-proxy-deploy.yml@main
+    uses: atlaspendo/apigeex-cicd/.github/workflows/reusable-proxy-deploy.yml@main  # Changed from Reusable to reusable
     with:
       proxy_name: ${{ github.event.inputs.proxy_name || 'DefaultProxyName' }}
       environment_group: ${{ github.event.inputs.environment_group || 'default' }}
@@ -60,11 +53,10 @@ jobs:
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
       is_production: ${{ github.event.inputs.environment_type == 'prod' }}
       event_name: ${{ github.event_name }}
-      version_id: ''  # Pass empty string as default
     secrets:
       APIGEE_ORG: ${{ secrets.APIGEE_ORG }}
       APIGEE_ORG_PROD: ${{ secrets.APIGEE_ORG_PROD }}
       WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       WORKLOAD_IDENTITY_PROVIDER_PROD: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_PROD }}
       SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
-      SERVICE_ACCOUNT_PROD: ${{ secrets.SERVICE_ACCOUNT_PROD }}
+      SERVICE_ACCOUNT_PROD: ${{
