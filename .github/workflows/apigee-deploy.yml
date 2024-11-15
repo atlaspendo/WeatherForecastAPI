@@ -30,7 +30,7 @@ on:
           - "dev"
           - "test-env"
           - "test"
-          - "uat"
+          - "dev,test,uat"
           - "prod"
         default: "dev"
       proxy_directory:
@@ -42,6 +42,8 @@ permissions:
   contents: read
   id-token: write
   deployments: write
+  issues: write
+  checks: write
 
 jobs:
   deploy:
@@ -53,8 +55,6 @@ jobs:
       proxy_directory: ${{ github.event.inputs.proxy_directory || 'apiproxy' }}
       is_production: ${{ github.event.inputs.environment_type == 'prod' }}
       event_name: ${{ github.event_name }}
-      version_id: ${{ format('rev-{0}', github.run_number) }}
-
     secrets:
       APIGEE_ORG: ${{ secrets.APIGEE_ORG }}
       APIGEE_ORG_PROD: ${{ secrets.APIGEE_ORG_PROD }}
