@@ -45,7 +45,7 @@ permissions:
 
 jobs:
   deploy:
-    uses: atlaspendo/apigeex-cicd/.github/workflows/reusable-proxy-deploy.yml@main  # Changed from Reusable to reusable
+    uses: atlaspendo/apigeex-cicd/.github/workflows/Reusable-proxy-deploy.yml@main  # Changed from Reusable to reusable
     with:
       proxy_name: ${{ github.event.inputs.proxy_name || 'DefaultProxyName' }}
       environment_group: ${{ github.event.inputs.environment_group || 'default' }}
