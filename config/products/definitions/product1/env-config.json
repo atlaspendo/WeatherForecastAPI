@@ -1,0 +1,17 @@
+{
+    "environments": {
+      "dev": {
+        "specific_quota": "500",
+        "additionalProxies": ["customer-mock-v1"]
+      },
+      "test": {
+        "specific_quota": "1000"
+      },
+      "uat": {
+        "specific_quota": "2000"
+      },
+      "prod": {
+        "specific_quota": "5000"
+      }
+    }
+  }

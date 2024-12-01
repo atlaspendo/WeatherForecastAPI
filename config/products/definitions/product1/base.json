@@ -1,0 +1,16 @@
+{
+    "productConfig": {
+      "name": "customer-api-product",
+      "displayName": "Customer API Product",
+      "description": "API Product for Customer Management APIs",
+      "proxies": [
+        "customer-v1",
+        "customer-profile-v1"
+      ],
+      "attributes": {
+        "category": "customer",
+        "team": "customer-platform"
+      }
+    }
+  }
+  

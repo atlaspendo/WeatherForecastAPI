@@ -1,0 +1,11 @@
+{
+    "environmentConfig": {
+      "quota": "1000",
+      "quotaInterval": "1",
+      "quotaTimeUnit": "minute",
+      "attributes": {
+        "access": "internal",
+        "rateLimit": "medium"
+      }
+    }
+  }

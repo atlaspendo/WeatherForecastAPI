@@ -1,0 +1,24 @@
+{
+    "template": {
+      "name": "${PRODUCT_NAME}",
+      "displayName": "${DISPLAY_NAME}",
+      "description": "${DESCRIPTION}",
+      "approvalType": "auto",
+      "attributes": [
+        {
+          "name": "access",
+          "value": "${ACCESS_LEVEL}"
+        },
+        {
+          "name": "environment",
+          "value": "${ENVIRONMENT}"
+        }
+      ],
+      "environments": ["${ENVIRONMENT}"],
+      "proxies": ["${PROXY_LIST}"],
+      "quota": "${QUOTA_LIMIT}",
+      "quotaInterval": "${QUOTA_INTERVAL}",
+      "quotaTimeUnit": "${QUOTA_TIMEUNIT}",
+      "scopes": []
+    }
+  }
